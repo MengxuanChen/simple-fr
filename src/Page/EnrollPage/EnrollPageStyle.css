@@ -10,8 +10,11 @@
     color: cornsilk;
     text-align: center;
     font-family: monospace;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
     position: relative;
-    top: 30%;
+    top: 13%
 }
 
 .text-line {
