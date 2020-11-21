@@ -33,7 +33,7 @@ export default class CameraModule extends Component {
             return new Blob([uInt8Array], { type: contentType });
     }
 
-    takeSnapShot(e){
+    addFaceToPerson(e){
         let imageSrc = this.webcam.getScreenshot();
         let imageBlob = this.toBlob(imageSrc);
         fetch(process.env.REACT_APP_API_ENDPOINT_DETECT, {
@@ -43,9 +43,29 @@ export default class CameraModule extends Component {
                 "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
             },
             body: imageBlob
-        }).then(response => response.json())
-          .then(json => console.log(json))
-          .catch(err => console.log('Request Fail', err));
+        }).then(this.trainPersonGroup(e))
+          .catch(err => console.log('Add_Face Request Fail', err));
+    }
+
+    trainPersonGroup(e){
+        fetch(process.env.REACT_APP_API_ENDPOINT_TRAIN, {
+            method: 'post',
+            headers: {
+                "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
+            }
+        }).then(this.getTrainStatus(e))
+          .catch(err => console.log('Train_Request Fail', err));
+    }
+
+    getTrainStatus(e){
+        let status = '';
+       fetch(process.env.REACT_APP_API_ENDPOINT_STATUS, {
+            method: 'get',
+            headers: {
+                "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
+            }
+        }).then(res => status = res.status)
+        .catch(err => console.log('Get_Training_Status Request Fail', err));
     }
 
     render() {
@@ -70,7 +90,7 @@ export default class CameraModule extends Component {
                         transform: 'translate(-50%, -30%)',
                      }}
                 />
-                <Button danger className = "cameraBtn" onClick = {(e) => this.takeSnapShot(e)}>This is my face 👍</Button>
+                <Button danger className = "cameraBtn" onClick = {(e) => this.addFaceToPerson(e)}>This is my face 👍</Button>
             </div>
         )
     }
