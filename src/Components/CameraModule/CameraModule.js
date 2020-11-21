@@ -5,11 +5,15 @@ import './CameraModuleStyle.css';
 
 export default class CameraModule extends Component {
 
+    constructor(props) {
+        super(props)
+    }
     //set up ref for the webcam, so we can take screenshot
     setRef = webcam => {
         this.webcam = webcam;
       };
-    
+
+      
     //Azure face api does not support 64 based econded image.
     toBlob(imageSrc){
         var BASE64_MARKER = ';base64,';
@@ -33,9 +37,11 @@ export default class CameraModule extends Component {
             return new Blob([uInt8Array], { type: contentType });
     }
 
-    addFaceToPerson(e){
+    //add verify face function
+    verifyFace(e){
         let imageSrc = this.webcam.getScreenshot();
         let imageBlob = this.toBlob(imageSrc);
+        console.log(imageBlob)
         fetch(process.env.REACT_APP_API_ENDPOINT_DETECT, {
             method: 'post',
             headers: {
@@ -43,29 +49,27 @@ export default class CameraModule extends Component {
                 "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
             },
             body: imageBlob
-        }).then(this.trainPersonGroup(e))
+        }).then(response => response.json())
+          .then(json => {
+              this.props.parentCallback(json)
+          })
           .catch(err => console.log('Add_Face Request Fail', err));
     }
 
-    trainPersonGroup(e){
-        fetch(process.env.REACT_APP_API_ENDPOINT_TRAIN, {
+    //return 400 if there is no face in the image
+    addFace(e){
+        let imageSrc = this.webcam.getScreenshot();
+        let imageBlob = this.toBlob(imageSrc);
+        let url = process.env.REACT_APP_API_ENDPOINT_ADD_FACE + this.props.personId + '/persistedFaces?detectionModel=detection_01';
+        fetch(url , {
             method: 'post',
             headers: {
+                "Content-Type":"application/octet-stream",
                 "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
-            }
-        }).then(this.getTrainStatus(e))
-          .catch(err => console.log('Train_Request Fail', err));
-    }
-
-    getTrainStatus(e){
-        let status = '';
-       fetch(process.env.REACT_APP_API_ENDPOINT_STATUS, {
-            method: 'get',
-            headers: {
-                "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
-            }
-        }).then(res => status = res.status)
-        .catch(err => console.log('Get_Training_Status Request Fail', err));
+            },
+           body: imageBlob
+        }).then(response => this.props.enrollment(response))
+          .catch(err => console.log('Add_Face Request Fail', err));
     }
 
     render() {
@@ -90,7 +94,7 @@ export default class CameraModule extends Component {
                         transform: 'translate(-50%, -30%)',
                      }}
                 />
-                <Button danger className = "cameraBtn" onClick = {(e) => this.addFaceToPerson(e)}>This is my face 👍</Button>
+                <Button danger className = "cameraBtn" onClick = {(e) => {this.props.isEnroll ? this.addFace(e) : this.verifyFace(e)}}>This is my face 👍</Button>
             </div>
         )
     }
