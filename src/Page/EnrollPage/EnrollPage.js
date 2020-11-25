@@ -1,13 +1,14 @@
 import React, { Component } from 'react'
 import './EnrollPageStyle.css';
 import { Button } from 'antd';
-import ReactDOM from 'react-dom';
 import CameraModule from '../../Components/CameraModule/CameraModule';
+import { Redirect } from 'react-router-dom';
 
 export default class EnrollPage extends Component {
-    state = {perosnName:'', personId:''}
+
     constructor(props) {
         super(props);
+        this.state = {personName:'', personId:'', isRedirect: false, isCreate: false};
         this.enrollment = this.enrollment.bind(this);
     }
 
@@ -32,29 +33,14 @@ export default class EnrollPage extends Component {
     }
     
     personResponseHandler(res){
-        this.setState({personId: res.personId})
-        const newElement = (
-            <div className = 'pageBody'>
-                <h1 className = 'greetTxt'> Hi 👋{this.state.personName},  please show me your face</h1>
-                <h1 className = 'greetTxt'> Please hold still</h1>
-                <CameraModule enrollment = {this.enrollment} isEnroll = {true} personId = {this.state.personId}/>
-            </div>
-        )
-        ReactDOM.render(newElement, document.getElementById('root'))
+        this.setState({personId: res.personId, isCreate: true})
     }
 
-    enrollment(res){
+    enrollment(res) {
         if (res.length !== 0){
             this.trainPersonGroup();
         }else{
-            const newElement = (
-            <div className = 'pageBody'>
-                <h1 className = 'greetTxt'> Hi 👋{this.state.personName},  I cannot see your face</h1>
-                <h1 className = 'greetTxt'> Please hold still and show me again</h1>
-                <CameraModule  isEnroll = {true} personId = {this.state.personId}/>
-            </div>
-            )
-            ReactDOM.render(newElement, document.getElementById('root'))
+            this.setState({})
         }
     }
 
@@ -69,24 +55,33 @@ export default class EnrollPage extends Component {
     }
 
     getTrainStatus(){
-        let status = '';
        fetch(process.env.REACT_APP_API_ENDPOINT_STATUS, {
             method: 'get',
             headers: {
                 "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
             }
-        }).then(res => {status = res.status;
-                        console.log(status);})
+        }).then(res => {this.setState({isRedirect: true, tempo:'1'})})
         .catch(err => console.log('Get_Training_Status Request Fail', err));
     }
 
     render() {
-        return (
-            <div className = 'pageBody'>
-              <h1 className = 'nameInput'> 
-                My name is <input type="text" className="text-line" value = {this.state.personName} onChange= {this.handleChange} />
-                <Button danger className = "personBtn" onClick = {(e) => this.creatPerson(e)}>Hi 👋</Button> </h1>
-            </div>   
-        )
+        if(this.state.isRedirect){
+            return(<Redirect to='/verify'/>)
+        }
+        if(this.state.isCreate){
+            return(<div className = 'pageBody'>
+                        <h1 className = 'greetTxt'> Hi 👋{this.state.personName},  I cannot see your face</h1>
+                        <h1 className = 'greetTxt'> Please hold still and show me again</h1>
+                        <CameraModule  isEnroll = {true} personId = {this.state.personId} enrollment = {this.enrollment}/>
+                    </div>)
+        }else{
+            return (
+                <div className = 'pageBody'>
+                  <h1 className = 'nameInput'> 
+                    My name is <input type="text" className="text-line" value = {this.state.personName} onChange= {this.handleChange} />
+                    <Button danger className = "personBtn" onClick = {(e) => this.creatPerson(e)}>Hi 👋</Button> </h1>
+                </div>   
+            )
+        }
     }
 }

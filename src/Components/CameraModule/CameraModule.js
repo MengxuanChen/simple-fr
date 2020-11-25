@@ -41,7 +41,6 @@ export default class CameraModule extends Component {
     verifyFace(e){
         let imageSrc = this.webcam.getScreenshot();
         let imageBlob = this.toBlob(imageSrc);
-        console.log(imageBlob)
         fetch(process.env.REACT_APP_API_ENDPOINT_DETECT, {
             method: 'post',
             headers: {
