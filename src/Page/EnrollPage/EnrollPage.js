@@ -28,7 +28,7 @@ export default class EnrollPage extends Component {
                   })
             }).then(response => response.json())
               .then(json => this.personResponseHandler(json))
-              .catch(err => console.log('Request Fail', err));
+              .catch(err => console.log('Create_Person_Request Fail', err));
         }
     }
     
