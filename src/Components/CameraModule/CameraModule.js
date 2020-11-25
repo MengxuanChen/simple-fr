@@ -37,11 +37,11 @@ export default class CameraModule extends Component {
             return new Blob([uInt8Array], { type: contentType });
     }
 
-    //add verify face function
+    //add verify face function(return faceId and face attributes)
     verifyFace(e){
         let imageSrc = this.webcam.getScreenshot();
         let imageBlob = this.toBlob(imageSrc);
-        fetch(process.env.REACT_APP_API_ENDPOINT_DETECT, {
+        fetch(process.env.REACT_APP_API_ENDPOINT_DETECT_EMOTION, {
             method: 'post',
             headers: {
                 "Content-Type":"application/octet-stream",
@@ -50,12 +50,12 @@ export default class CameraModule extends Component {
             body: imageBlob
         }).then(response => response.json())
           .then(json => {
-              this.props.parentCallback(json)
+              this.props.verification(json)
           })
-          .catch(err => console.log('Add_Face Request Fail', err));
+          .catch(err => console.log('Detect_Face Request Fail', err));
     }
 
-    //return 400 if there is no face in the image
+    //return 400 if there is no face in the image(return faceId)
     addFace(e){
         let imageSrc = this.webcam.getScreenshot();
         let imageBlob = this.toBlob(imageSrc);
